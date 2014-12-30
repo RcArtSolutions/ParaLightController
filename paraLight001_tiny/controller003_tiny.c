@@ -1,15 +1,15 @@
 /************************************************************************************/
-// Schalterfunktionalität an einem RC-Empfänger Ausgang
+// Remoteswitch (Controller) für das ParaLight-Modul an einem RC-Empfänger Ausgang
 //
-// Version: 0.2
+// Version:		0.21-D2912
 //
-// Autor: Ruemmler, Elias
-//        RC-Art Solutions (Eisenach/Germany)
+// Autor:		Ruemmler, Elias
+//				RC-Art Solutions (Eisenach/Germany)
 //
-// Copyright: 2011-2014 RC-Art Solutions (Eisenach/Germany)
-//	      http://www.rc-art.de/
+// Copyright:	2011-2014 RC-Art Solutions (Eisenach/Germany)
+//				http://www.rc-art.de/
 //
-// Datum: 29.12.2014
+// Datum:		29.12.2014
 //
 // Hardware an ATtiny13A (Taktfrequenz (4,8 Mhz; CKDIV8 Vorteiler Fuse NICHT gesetzt):
 // RC-Empfänger an PB1 (INT0)
@@ -21,7 +21,7 @@
 
 #ifndef F_CPU
 #warning "F_CPU not defined"
-#define F_CPU 4800000UL //4,8MHz
+#define F_CPU 4800000UL		//4,8MHz
 #endif
 
 /************************************************************************************/
@@ -36,25 +36,26 @@
 // Pin-Belegung
 
 #define ReceiverInput		PINB	// Eingangssignal RC-Empfänger
-#define ReceiverPin		PINB1	// Pin für Eingangssignal RC-Empfänger
+#define ReceiverPin			PINB1	// Pin für Eingangssignal RC-Empfänger
 #define ReceiverPort		PORTB	// Port für Eingangssignal RC-Empfänger
 
 #define ParaLightPort		PORTB	// Port für Ausgänge
 #define ParaLightPortDDR	DDRB	// Datenrichtungsregister für Ausgänge
-#define ErrorLed		PB2	// Ausgang für Error LED
-#define ParaLightEn		PB3	// Ausgang für ParaLight En-Pin
-#define ParaLightSpare1		PB4	// Ausgang für ParaLight Spare1
+#define ErrorLed			PB2		// Ausgang für Error LED
+#define ParaLightEn			PB3		// Ausgang für ParaLight En-Pin
+#define ParaLightSpare1		PB4		// Ausgang für ParaLight Spare1
 
 /************************************************************************************/
 // Variablen
 
-static volatile uint8_t Reading;	// Bit- Merker zur Sperrung der Hauptroutine während der erneuten Wertermittlung
-// Merker Flanke
-
-static volatile uint8_t Error;		// Bit- Merker für Fehler
 static volatile uint8_t RCvalue;	// empfangener Wert von RC-Empfänger -> wird von Timer runtergezählt
 static volatile uint8_t PulseCount;	// Zählt die empfangenen Pulse, um ein Blink-Signal zu erzeugen
-static volatile uint8_t PulseToggle;	// Löst alle 5440ms aus (5440ms Zeitdauer für S.O.S. Sequenz)
+
+// Merker Flanke
+
+static volatile uint8_t Error;		// Merkerbit für Fehler
+static volatile uint8_t Reading;	// Merkerbit zur Sperrung der Hauptroutine während der erneuten Wertermittlung
+static volatile uint8_t PulseToggle;// Löst alle 5440ms aus (5440ms Zeitdauer für S.O.S. Sequenz)
 
 /************************************************************************************/
 //Header
@@ -188,8 +189,8 @@ void RC_Read()
 	if(Reading == 0)
 	{
 		TCCR0B |= (1<<CS00)|(1<<CS01);	 	// Start Timer0 mit Vorteiler 64 -> 75kHz
-		Reading = 1;				// Flankenmerker setzen
-		if (PulseCount < 272)			// 5440 Millisekunden (erforderliche Zeit für S.O.S. Sequenz)
+		Reading = 1;						// Flankenmerker setzen
+		if (PulseCount < 272)				// 5440 Millisekunden (erforderliche Zeit für S.O.S. Sequenz)
 		{
 			PulseCount++;
 		}
@@ -208,7 +209,7 @@ void RC_Read()
 		Reading = 0;		// Flankenmerker rücksetzen
 	}
 
-	Error = 0;			// Errormerker rücksetzen
+	Error = 0;				// Errormerker rücksetzen
 }
 
 
@@ -219,6 +220,5 @@ void RC_Error()
 	RCvalue = 0;			// Wert für Ausgänge annehmen
 	TCNT0 = 0x00;			// neuen Startwert für Timer zurücksetzen
 	Reading = 0;			// Merker Flanke setzten
-	Error = 1;			// Errormerker setzen
+	Error = 1;				// Errormerker setzen
 }
-
