@@ -187,9 +187,9 @@ void RC_Read()
 	// Timer starten mit steigender Flanke
 	if(Reading == 0)
 	{
-		TCCR0B |= (1<<CS00)|(1<<CS01);	// Start Timer0 mit Vorteiler 64 -> 75kHz
-		Reading = 1;					// Merker Flanke setzten
-		if (PulseCount < 272)			// 5440 Millisekunden
+		TCCR0B |= (1<<CS00)|(1<<CS01);	 	// Start Timer0 mit Vorteiler 64 -> 75kHz
+		Reading = 1;				// Flankenmerker setzten
+		if (PulseCount < 272)			// 5440 Millisekunden (erforderliche Zeit für S.O.S. Sequenz)
 		{
 			PulseCount++;
 		}
@@ -202,13 +202,13 @@ void RC_Read()
 	// Timer stoppen mit fallender Flanke
 	else
 	{
-		TCCR0B = 0x00;		// Stop Timer0
+		TCCR0B = 0x00;		// Timer0 anhalten
 		RCvalue = TCNT0;	// Wert von Timer lesen
-		TCNT0 = 0x00;		// neuen Startwert für Timer laden
-		Reading = 0;		// Merker Flanke setzten
+		TCNT0 = 0x00;		// Timer rücksetzen
+		Reading = 0;		// Flankenmerker rücksetzen
 	}
 
-	Error = 0;				// Error-Merker zurücksetzen
+	Error = 0;			// Error-Merker zurücksetzen
 }
 
 
@@ -219,6 +219,6 @@ void RC_Error()
 	RCvalue = 0;			// Wert für Ausgänge annehmen
 	TCNT0 = 0x00;			// neuen Startwert für Timer zurücksetzen
 	Reading = 0;			// Merker Flanke setzten
-	Error = 1;				// Error-Merker setzen
+	Error = 1;			// Error-Merker setzen
 }
 
