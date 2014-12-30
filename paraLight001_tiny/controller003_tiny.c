@@ -48,14 +48,15 @@
 /************************************************************************************/
 // Variablen
 
-static volatile uint8_t RCvalue;	// empfangener Wert von RC-Empfänger -> wird von Timer runtergezählt
-static volatile uint8_t PulseCount;	// Zählt die empfangenen Pulse, um ein Blink-Signal zu erzeugen
+static volatile uint8_t RCvalue;		// empfangener Wert von RC-Empfänger -> wird von Timer runtergezählt
+static volatile uint8_t PulseCount;		// Zählt die empfangenen Pulse, um ein Blink-Signal zu erzeugen
+static volatile uint8_t MorseTicks;		// Zählt anhand der empfangenen Pulse alle 160 ms hoch, bis 34
+static volatile uint8_t OperationMode;	// 1: AUS, 2: An, 3: Blink, 4: Flash, 5: S.O.S.
 
 // Merker Flanke
 
 static volatile uint8_t Error;		// Merkerbit für Fehler
 static volatile uint8_t Reading;	// Merkerbit zur Sperrung der Hauptroutine während der erneuten Wertermittlung
-static volatile uint8_t PulseToggle;// Löst alle 5440ms aus (5440ms Zeitdauer für S.O.S. Sequenz)
 
 /************************************************************************************/
 //Header
@@ -132,17 +133,24 @@ int main(void)
 			if(RCvalue > 75 && RCvalue < 90)
 			{
 				ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				OperationMode = 1;
 			}
 			
 			// OP.MOD2 - AN
 			if(RCvalue > 90 && RCvalue < 105)
 			{
 				ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				OperationMode = 2;
 			}
 
 			// OP.MOD3 - BLINK (~1,5 Hz)
 			if(RCvalue > 105 && RCvalue < 120)
 			{
+				if (OperationMode != 3)
+				{
+					PulseCount = 0;
+				}
+				
 				if ((PulseCount % 34) < 17) // Modulo-Operation um die 272 Pulse in 8 Bereiche (á 680ms) einzuteilen
 				{
 					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
@@ -151,31 +159,108 @@ int main(void)
 				{
 					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
 				}
+			OperationMode = 3;
 			}
 			
 			// OP.MOD4 - FLASH
 			if(RCvalue > 120 && RCvalue < 135)
 			{
+				if (OperationMode != 4)
+				{
+					PulseCount = 0;
+				}
+				
 				//TODO: Flashlight hier erzeugen
 				ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				OperationMode = 4;
 			}
 
 			// OP.MOD5 - S.O.S.
 			if(RCvalue > 135 && RCvalue < 150)
 			{
-				//TODO: S.O.S. Sequenz hier erzeugen
-				ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				if (OperationMode != 5)
+				{
+					PulseCount = 0;
+				}
+				
+				// 272 Ticks müssen in 34 Bereiche (á 1T [Dit] = 160 ms -> 8 WpM) eingeteilt werden
+				// 272 / 34 = 8 -> 1T [Dit] 8 Ticks
+				
+				if (PulseCount >= 0 && PulseCount < 8)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 8 && PulseCount < 16)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (PulseCount >= 16 && PulseCount < 24)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 24 && PulseCount < 32)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (PulseCount >= 32 && PulseCount < 40)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 40 && PulseCount < 64)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (PulseCount >= 64 && PulseCount < 88)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 88 && PulseCount < 96)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (PulseCount >= 96 && PulseCount < 120)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 120 && PulseCount < 128)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (PulseCount >= 128 && PulseCount < 152)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 152 && PulseCount < 176)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (PulseCount >= 176 && PulseCount < 184)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 184 && PulseCount < 192)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (PulseCount >= 192 && PulseCount < 200)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 200 && PulseCount < 208)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (PulseCount >= 208 && PulseCount < 216)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (PulseCount >= 216 && PulseCount <= 272)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				
+				OperationMode = 5;
 			}
-
-			//DEBUG: Testsequenz zur Zeitprüfung
-			//if(RCvalue > 112 && PulseToggle)
-			//{
-				//LED_Port &= ~(1<<SchaltLED1);	// En-Pin low -> ParaLight aus
-			//}
-			//else
-			//{
-				//LED_Port |= (1<<SchaltLED1);	// En-Pin high -> ParaLight an
-			//}
 		}
 	}
 }
@@ -193,11 +278,15 @@ void RC_Read()
 		if (PulseCount < 272)				// 5440 Millisekunden (erforderliche Zeit für S.O.S. Sequenz)
 		{
 			PulseCount++;
+			//if ((PulseCount % 8) == 0)
+			//{
+				//MorseTicks++;
+			//}
 		}
 		else // Rücksetzen
 		{
 			PulseCount = 0;
-			PulseToggle = !PulseToggle;
+			//MorseTicks = 0;
 		}
 	}
 	// Timer stoppen mit fallender Flanke
