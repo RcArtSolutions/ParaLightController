@@ -50,8 +50,8 @@
 
 static volatile uint8_t RCvalue;		// empfangener Wert von RC-Empfänger -> wird von Timer runtergezählt
 static volatile uint8_t PulseCount;		// Zählt die empfangenen Pulse, um ein Blink-Signal zu erzeugen
-static volatile uint8_t MorseTicks;		// Zählt anhand der empfangenen Pulse alle 160 ms hoch, bis 34
-static volatile uint8_t OperationMode;	// 1: AUS, 2: An, 3: Blink, 4: Flash, 5: S.O.S.
+static volatile uint8_t FlashCount;		// Zählt anhand der empfangenen Pulse alle 160 ms hoch, bis 34
+static volatile uint8_t OperationMode;	// OP.MOD 1: AUS, 2: AN, 3: Blink, 4: Flash, 5: S.O.S.
 
 // Merker Flanke
 
@@ -106,6 +106,7 @@ int main(void)
 	// Vorbereitung Status-Flags - kein Fehler liegt an, momentan kein Datenempfang
 	Reading = 0;
 	Error = 0;
+	RCvalue = 82;		// Aktiviert OP.MOD1 - AUS
 	
 	// globale Interrupptfreigabe
 	sei();
@@ -146,12 +147,7 @@ int main(void)
 			// OP.MOD3 - BLINK (~1,5 Hz)
 			if(RCvalue > 105 && RCvalue < 120)
 			{
-				if (OperationMode != 3)
-				{
-					PulseCount = 0;
-				}
-				
-				if ((PulseCount % 34) < 17) // Modulo-Operation um die 272 Pulse in 8 Bereiche (á 680ms) einzuteilen
+				if ((PulseCount % 16) < 8) // Modulo-Operation um die 272 Pulse in 15 Bereiche einzuteilen
 				{
 					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
 				}
@@ -159,7 +155,8 @@ int main(void)
 				{
 					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
 				}
-			OperationMode = 3;
+				
+				OperationMode = 3;
 			}
 			
 			// OP.MOD4 - FLASH
@@ -167,11 +164,26 @@ int main(void)
 			{
 				if (OperationMode != 4)
 				{
-					PulseCount = 0;
+					FlashCount = 0;
 				}
 				
-				//TODO: Flashlight hier erzeugen
-				ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				if (FlashCount >= 0 && FlashCount < 4)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (FlashCount >= 4 && FlashCount < 7)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				if (FlashCount >= 7 && FlashCount < 11)
+				{
+					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
+				}
+				if (FlashCount >= 11 && FlashCount <= 34)
+				{
+					ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
+				}
+				
 				OperationMode = 4;
 			}
 
@@ -278,15 +290,18 @@ void RC_Read()
 		if (PulseCount < 272)				// 5440 Millisekunden (erforderliche Zeit für S.O.S. Sequenz)
 		{
 			PulseCount++;
-			//if ((PulseCount % 8) == 0)
-			//{
-				//MorseTicks++;
-			//}
 		}
 		else // Rücksetzen
 		{
 			PulseCount = 0;
-			//MorseTicks = 0;
+		}
+		if (FlashCount < 34)				// 5440 Millisekunden (erforderliche Zeit für S.O.S. Sequenz)
+		{
+			FlashCount++;
+		}
+		else // Rücksetzen
+		{
+			FlashCount = 0;
 		}
 	}
 	// Timer stoppen mit fallender Flanke
@@ -309,5 +324,6 @@ void RC_Error()
 	RCvalue = 0;			// Wert für Ausgänge annehmen
 	TCNT0 = 0x00;			// neuen Startwert für Timer zurücksetzen
 	Reading = 0;			// Merker Flanke setzten
+	RCvalue = 97;			// Aktiviert OP.MOD2 (AN)
 	Error = 1;				// Errormerker setzen
 }
