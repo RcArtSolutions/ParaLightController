@@ -1,20 +1,21 @@
 /************************************************************************************/
-// Schalterfunktionalität an einem RC-Empfänger Ausgang
+// SchalterfunktionalitÃ¤t an einem RC-EmpfÃ¤nger Ausgang
 //
 // Version: 0.2
 //
 // Autor: Ruemmler, Elias
-//		  RC-Art Solutions (Eisenach/Germany)
+//        RC-Art Solutions (Eisenach/Germany)
 //
 // Copyright: 2011-2014 RC-Art Solutions (Eisenach/Germany)
+//	      http://www.rc-art.de/
 //
 // Datum: 29.12.2014
 //
 // Hardware an ATtiny13A (Taktfrequenz (4,8 Mhz; CKDIV8 Vorteiler Fuse NICHT gesetzt):
-// RC-Empfänger an PB1 (INT0)
+// RC-EmpfÃ¤nger an PB1 (INT0)
 // Error LED an	PB2
 // ParaLight En-Pin an PB3
-// ParaLight Spare1	an PB4
+// ParaLight Spare1 an PB4
 /************************************************************************************/
 // Compiler- Warnungen
 
@@ -28,32 +29,32 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/wdt.h>		// für Watchdog- Funktionen
+#include <avr/wdt.h>		// Watchdog FunktionalitÃ¤t
 #include <stdint.h>
 
 /************************************************************************************/
-// Pin- Belegung
+// Pin-Belegung
 
-#define ReceiverInput		PINB	// Eingangssignal RC-Empfänger
-#define ReceiverPin			PINB1	// Pin für Eingangssignal RC-Empfänger
-#define ReceiverPort		PORTB	// Port für Eingangssignal RC-Empfänger
+#define ReceiverInput		PINB	// Eingangssignal RC-EmpfÃ¤nger
+#define ReceiverPin		PINB1	// Pin fÃ¼r Eingangssignal RC-EmpfÃ¤nger
+#define ReceiverPort		PORTB	// Port fÃ¼r Eingangssignal RC-EmpfÃ¤nger
 
-#define ParaLightPort		PORTB	// Port für Ausgänge
-#define ParaLightPortDDR	DDRB	// Datenrichtungsregister für Ausgänge
-#define ErrorLed			PB2		// Ausgang für Error LED
-#define ParaLightEn			PB3		// Ausgang für ParaLight En-Pin
-#define ParaLightSpare1		PB4		// Ausgang für ParaLight Spare1
+#define ParaLightPort		PORTB	// Port fÃ¼r AusgÃ¤nge
+#define ParaLightPortDDR	DDRB	// Datenrichtungsregister fÃ¼r AusgÃ¤nge
+#define ErrorLed		PB2	// Ausgang fÃ¼r Error LED
+#define ParaLightEn		PB3	// Ausgang fÃ¼r ParaLight En-Pin
+#define ParaLightSpare1		PB4	// Ausgang fÃ¼r ParaLight Spare1
 
 /************************************************************************************/
 // Variablen
 
-static volatile uint8_t Reading;	// Bit- Merker zur Sperrung der Hauptroutine während der erneuten Wertermittlung
+static volatile uint8_t Reading;	// Bit- Merker zur Sperrung der Hauptroutine wÃ¤hrend der erneuten Wertermittlung
 // Merker Flanke
 
-static volatile uint8_t Error;		// Bit- Merker für Fehler
-static volatile uint8_t RCvalue;	// empfangener Wert von R/C- Empfänger -> wird von Timer runtergezählt
-static volatile uint8_t PulseCount;	// Zählt die empfangenen Pulse, um ein Blink-Signal zu erzeugen
-static volatile uint8_t PulseToggle;// Löst alle 5440ms aus (5440ms Zeitdauer für S.O.S. Sequenz)
+static volatile uint8_t Error;		// Bit- Merker fÃ¼r Fehler
+static volatile uint8_t RCvalue;	// empfangener Wert von R/C- EmpfÃ¤nger -> wird von Timer runtergezÃ¤hlt
+static volatile uint8_t PulseCount;	// ZÃ¤hlt die empfangenen Pulse, um ein Blink-Signal zu erzeugen
+static volatile uint8_t PulseToggle;	// LÃ¶st alle 5440ms aus (5440ms Zeitdauer fÃ¼r S.O.S. Sequenz)
 
 /************************************************************************************/
 //Header
@@ -64,13 +65,13 @@ void RC_Error();
 /************************************************************************************/
 // Interruptroutinen
 
-/* ISR für INT0 - RC-Signal mit Timer lesen */
+/* ISR fÃ¼r INT0 - RC-Signal mit Timer lesen */
 ISR(INT0_vect)
 {
 	RC_Read();
 }
 
-/* Fehlerbehandlung bei Timerüberlauf -> Fehler generieren */
+/* Fehlerbehandlung bei TimerÃ¼berlauf -> Fehler generieren */
 ISR(TIM0_OVF_vect)
 {
 	RC_Error();
@@ -83,16 +84,16 @@ int main(void)
 {
 	// Vorbereitung des RC-Eingangs
 	// RC-Eingang ist schon nach Initialisierung des AVR ein Eingang
-	ReceiverPort |= (1<<ReceiverPin); // interne Pull-Up-Widerstände aktivieren
+	ReceiverPort |= (1<<ReceiverPin); // interne Pull-Up-WiderstÃ¤nde aktivieren
 
-	// Initialisierung Ausgänge
+	// Initialisierung AusgÃ¤nge
 	ParaLightPortDDR |= (1<<ErrorLed)|(1<<ParaLightEn)|(1<<ParaLightSpare1); // Datenrichtung
-	ParaLightPort |= (1<<ErrorLed)|(1<<ParaLightEn)|(1<<ParaLightSpare1);	 // alle Portausgänge sind jetzt high
-	// -> ParaLight wäre AN (En-Pin high)
+	ParaLightPort |= (1<<ErrorLed)|(1<<ParaLightEn)|(1<<ParaLightSpare1);	 // alle PortausgÃ¤nge sind jetzt high
+	// -> ParaLight wÃ¤re AN (En-Pin high)
 
 	// Initialisierung Interrupteingang INT0
-	MCUCR |= (1<<ISC00);	// Interrupt wird bei jedem Pegelwechsel an INT0 ausgelöst
-	GIMSK |= (1<<INT0);		// Interrupt INT0 aktivieren
+	MCUCR |= (1<<ISC00);	// Interrupt wird bei jedem Pegelwechsel an INT0 ausgelÃ¶st
+	GIMSK |= (1<<INT0);	// Interrupt INT0 aktivieren
 
 	// Initialisierung Timer0
 	TIMSK0 |= (1<<TOIE0);	// Timer0 Interrupt aktivieren
@@ -110,10 +111,10 @@ int main(void)
 	/***********************************************************************************/
 	while(1)
 	{
-		// Watchdog zurücksetzen
+		// Watchdog zurÃ¼cksetzen
 		wdt_reset();
 
-		// Error-LED an, wenn Timer-Überlauf war
+		// Error-LED an, wenn Timer-Ãœberlauf war
 		if(Error == 1)
 		{
 			ParaLightPort &= ~(1<<ErrorLed);	// Portausgang Error-LED low -> LED an
@@ -123,7 +124,7 @@ int main(void)
 			ParaLightPort |= (1<<ErrorLed);	// Portausgang Error-LED high -> LED aus
 		}
 		
-		// ParaLight-Ansteuerung während der langen Lesepause...
+		// ParaLight-Ansteuerung wÃ¤hrend der langen Lesepause...
 		if(Reading == 0)
 		{			
 			// OP.MOD1 - AUS
@@ -141,7 +142,7 @@ int main(void)
 			// OP.MOD3 - BLINK (~1,5 Hz)
 			if(RCvalue > 105 && RCvalue < 120)
 			{
-				if ((PulseCount % 34) < 17) // Modulo-Operation um die 272 Pulse in 8 Bereiche (á 680ms) einzuteilen
+				if ((PulseCount % 34) < 17) // Modulo-Operation um die 272 Pulse in 8 Bereiche (Ã¡ 680ms) einzuteilen
 				{
 					ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
 				}
@@ -154,7 +155,7 @@ int main(void)
 			// OP.MOD4 - FLASH
 			if(RCvalue > 120 && RCvalue < 135)
 			{
-				//TODO: FlashLight hier erzeugen
+				//TODO: Flashlight hier erzeugen
 				ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
 			}
 
@@ -165,7 +166,7 @@ int main(void)
 				ParaLightPort &= ~(1<<ParaLightEn);	// En-Pin low -> ParaLight aus
 			}
 
-			//DEBUG: Testsequenz zur Zeitprüfung
+			//DEBUG: Testsequenz zur ZeitprÃ¼fung
 			//if(RCvalue > 112 && PulseToggle)
 			//{
 				//LED_Port &= ~(1<<SchaltLED1);	// En-Pin low -> ParaLight aus
@@ -180,7 +181,7 @@ int main(void)
 
 /***********************************************************************************/
 
-// ISR für INT0 - RC-Signal mit Timer lesen
+// ISR fÃ¼r INT0 - RC-Signal mit Timer lesen
 void RC_Read()
 {
 	// Timer starten mit steigender Flanke
@@ -192,7 +193,7 @@ void RC_Read()
 		{
 			PulseCount++;
 		}
-		else // Rücksetzen
+		else // RÃ¼cksetzen
 		{
 			PulseCount = 0;
 			PulseToggle = !PulseToggle;
@@ -203,20 +204,20 @@ void RC_Read()
 	{
 		TCCR0B = 0x00;		// Stop Timer0
 		RCvalue = TCNT0;	// Wert von Timer lesen
-		TCNT0 = 0x00;		// neuen Startwert für Timer laden
+		TCNT0 = 0x00;		// neuen Startwert fÃ¼r Timer laden
 		Reading = 0;		// Merker Flanke setzten
 	}
 
-	Error = 0;				// Error-Merker zurücksetzen
+	Error = 0;				// Error-Merker zurÃ¼cksetzen
 }
 
 
-// ISR für Timer0-Fehlerhandling Timeroverflow
+// ISR fÃ¼r Timer0-Fehlerhandling Timeroverflow
 void RC_Error()
 {
 	TCCR0B = 0x00;			// Stop Timer0
-	RCvalue = 0;			// Wert für Ausgänge annehmen
-	TCNT0 = 0x00;			// neuen Startwert für Timer zurücksetzen
+	RCvalue = 0;			// Wert fÃ¼r AusgÃ¤nge annehmen
+	TCNT0 = 0x00;			// neuen Startwert fÃ¼r Timer zurÃ¼cksetzen
 	Reading = 0;			// Merker Flanke setzten
 	Error = 1;				// Error-Merker setzen
 }
