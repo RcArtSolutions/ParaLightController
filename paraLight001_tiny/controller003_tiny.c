@@ -1,7 +1,7 @@
 /************************************************************************************/
 // Remoteswitch (Controller) für das ParaLight-Modul an einem RC-Empfänger Ausgang
 //
-// Version:		0.21-D2912
+// Version:		0.3-D3012
 //
 // Autor:		Ruemmler, Elias
 //				RC-Art Solutions (Eisenach/Germany)
@@ -86,7 +86,7 @@ int main(void)
 {
 	// Vorbereitung des RC-Eingangs
 	// RC-Eingang ist schon nach Initialisierung des AVR ein Eingang
-	ReceiverPort |= (1<<ReceiverPin); // interne Pull-Up-Widerstände aktivieren
+	ReceiverPort |= (1<<ReceiverPin);	// interne Pull-Up-Widerstände aktivieren
 
 	// Initialisierung Ausgänge
 	ParaLightPortDDR |= (1<<ErrorLed)|(1<<ParaLightEn)|(1<<ParaLightSpare1); // Datenrichtung
@@ -94,11 +94,11 @@ int main(void)
 	// -> ParaLight wäre AN (En-Pin high)
 
 	// Initialisierung Interrupteingang INT0
-	MCUCR |= (1<<ISC00);	// Interrupt wird bei jedem Pegelwechsel an INT0 ausgelöst
-	GIMSK |= (1<<INT0);	// Interrupt INT0 aktivieren
+	MCUCR |= (1<<ISC00);				// Interrupt wird bei jedem Pegelwechsel an INT0 ausgelöst
+	GIMSK |= (1<<INT0);					// Interrupt INT0 aktivieren
 
 	// Initialisierung Timer0
-	TIMSK0 |= (1<<TOIE0);	// Timer0 Interrupt aktivieren
+	TIMSK0 |= (1<<TOIE0);				// Timer0 Interrupt aktivieren
 	
 	// Initialisierung Watchdog auf 500ms
 	wdt_enable(WDTO_500MS);
@@ -106,7 +106,7 @@ int main(void)
 	// Vorbereitung Status-Flags - kein Fehler liegt an, momentan kein Datenempfang
 	Reading = 0;
 	Error = 0;
-	RCvalue = 82;		// Aktiviert OP.MOD1 - AUS
+	RCvalue = 82;						// Aktiviert OP.MOD1 - AUS
 	
 	// globale Interrupptfreigabe
 	sei();
@@ -121,6 +121,7 @@ int main(void)
 		if(Error == 1)
 		{
 			ParaLightPort &= ~(1<<ErrorLed);	// Portausgang Error-LED low -> LED an
+			ParaLightPort |= (1<<ParaLightEn);	// En-Pin high -> ParaLight an
 		}
 		else
 		{
@@ -144,7 +145,7 @@ int main(void)
 				OperationMode = 2;
 			}
 
-			// OP.MOD3 - BLINK (~1,5 Hz)
+			// OP.MOD3 - BLINK (~2,8 Hz)
 			if(RCvalue > 105 && RCvalue < 120)
 			{
 				if ((PulseCount % 16) < 8) // Modulo-Operation um die 272 Pulse in 15 Bereiche einzuteilen
@@ -159,7 +160,7 @@ int main(void)
 				OperationMode = 3;
 			}
 			
-			// OP.MOD4 - FLASH
+			// OP.MOD4 - FLASH (Doppelblitz)
 			if(RCvalue > 120 && RCvalue < 135)
 			{
 				if (OperationMode != 4)
@@ -187,7 +188,7 @@ int main(void)
 				OperationMode = 4;
 			}
 
-			// OP.MOD5 - S.O.S.
+			// OP.MOD5 - S.O.S. (--- === ---     )
 			if(RCvalue > 135 && RCvalue < 150)
 			{
 				if (OperationMode != 5)
@@ -321,9 +322,8 @@ void RC_Read()
 void RC_Error()
 {
 	TCCR0B = 0x00;			// Stop Timer0
-	RCvalue = 0;			// Wert für Ausgänge annehmen
-	TCNT0 = 0x00;			// neuen Startwert für Timer zurücksetzen
-	Reading = 0;			// Merker Flanke setzten
 	RCvalue = 97;			// Aktiviert OP.MOD2 (AN)
+	TCNT0 = 0x00;			// neuen Startwert für Timer setzen
+	Reading = 0;			// Merker Flanke setzten
 	Error = 1;				// Errormerker setzen
 }
