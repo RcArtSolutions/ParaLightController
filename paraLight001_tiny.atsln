@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "paraLight001_tiny", "paraLight001_tiny\paraLight001_tiny.cproj", "{A45354D3-BB7C-489F-A66C-21465B3AF9ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A45354D3-BB7C-489F-A66C-21465B3AF9ED}.Debug|AVR.ActiveCfg = Debug|AVR
+		{A45354D3-BB7C-489F-A66C-21465B3AF9ED}.Debug|AVR.Build.0 = Debug|AVR
+		{A45354D3-BB7C-489F-A66C-21465B3AF9ED}.Release|AVR.ActiveCfg = Release|AVR
+		{A45354D3-BB7C-489F-A66C-21465B3AF9ED}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
