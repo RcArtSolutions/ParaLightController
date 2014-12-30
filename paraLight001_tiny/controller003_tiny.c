@@ -52,7 +52,7 @@ static volatile uint8_t Reading;	// Bit- Merker zur Sperrung der Hauptroutine w�
 // Merker Flanke
 
 static volatile uint8_t Error;		// Bit- Merker für Fehler
-static volatile uint8_t RCvalue;	// empfangener Wert von R/C- Empfänger -> wird von Timer runtergezählt
+static volatile uint8_t RCvalue;	// empfangener Wert von RC-Empfänger -> wird von Timer runtergezählt
 static volatile uint8_t PulseCount;	// Zählt die empfangenen Pulse, um ein Blink-Signal zu erzeugen
 static volatile uint8_t PulseToggle;	// Löst alle 5440ms aus (5440ms Zeitdauer für S.O.S. Sequenz)
 
@@ -101,7 +101,7 @@ int main(void)
 	// Initialisierung Watchdog auf 500ms
 	wdt_enable(WDTO_500MS);
 
-	// Vorbereitung Status- Flags - kein Fehler liegt an, momentan kein Datenenpfang
+	// Vorbereitung Status-Flags - kein Fehler liegt an, momentan kein Datenempfang
 	Reading = 0;
 	Error = 0;
 	
@@ -188,7 +188,7 @@ void RC_Read()
 	if(Reading == 0)
 	{
 		TCCR0B |= (1<<CS00)|(1<<CS01);	 	// Start Timer0 mit Vorteiler 64 -> 75kHz
-		Reading = 1;				// Flankenmerker setzten
+		Reading = 1;				// Flankenmerker setzen
 		if (PulseCount < 272)			// 5440 Millisekunden (erforderliche Zeit für S.O.S. Sequenz)
 		{
 			PulseCount++;
@@ -208,7 +208,7 @@ void RC_Read()
 		Reading = 0;		// Flankenmerker rücksetzen
 	}
 
-	Error = 0;			// Error-Merker zurücksetzen
+	Error = 0;			// Errormerker rücksetzen
 }
 
 
@@ -219,6 +219,6 @@ void RC_Error()
 	RCvalue = 0;			// Wert für Ausgänge annehmen
 	TCNT0 = 0x00;			// neuen Startwert für Timer zurücksetzen
 	Reading = 0;			// Merker Flanke setzten
-	Error = 1;			// Error-Merker setzen
+	Error = 1;			// Errormerker setzen
 }
 
