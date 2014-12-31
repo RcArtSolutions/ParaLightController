@@ -1,4 +1,4 @@
 ParaLightController
 ===================
 
-ParaLightController
+ParaLight - Remote Controller
