@@ -1,15 +1,13 @@
 /************************************************************************************/
 // Remoteswitch (Controller) für das ParaLight-Modul an einem RC-Empfänger Ausgang
 //
-// Version:		0.3-D3012
+// Version:		0.3-D3012-beta
 //
 // Autor:		Ruemmler, Elias
 //				RC-Art Solutions (Eisenach/Germany)
-//
-// Copyright:	2011-2014 RC-Art Solutions (Eisenach/Germany)
 //				http://www.rc-art.de/
 //
-// Datum:		29.12.2014
+// Datum:		29.12.2014 (Start)
 //
 // Hardware an ATtiny13A (Taktfrequenz (4,8 Mhz; CKDIV8 Vorteiler Fuse NICHT gesetzt):
 // RC-Empfänger an PB1 (INT0)
